@@ -1,6 +1,16 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* The Seasons Font */
+@font-face {
+  font-family: "The Seasons";
+  src: url("/fonts/the-seasons.woff2") format("woff2"),
+    url("/fonts/the-seasons.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
