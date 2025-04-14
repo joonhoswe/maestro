@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import Image from "next/image";
 import { CalendarDays, Music, MessageSquare, Users } from "lucide-react";
 import { BlurFade } from "@/components/magicui/blur-fade";
+import { Safari } from "../magicui/safari";
 
 export default function Hero() {
   return (
@@ -102,25 +102,12 @@ export default function Hero() {
               <div className="absolute -inset-4 bg-gradient-to-r from-gray-100 to-gray-50 rounded-3xl -z-10"></div>
 
               {/* Browser/app mockup container */}
-              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
-                {/* Browser-like toolbar with window controls */}
-                <div className="h-12 bg-gray-50 border-b border-gray-200 flex items-center px-4">
-                  <div className="flex space-x-2">
-                    <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-                    <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-                    <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-                  </div>
-                </div>
-
-                {/* Dashboard image container */}
-                <div className="aspect-[16/10] relative">
-                  <Image
-                    src="/not-found.png"
-                    alt="Maestro Dashboard Preview"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+              <div className="relative">
+                <Safari
+                  url="maestro.com"
+                  className="size-full"
+                  videoSrc="https://videos.pexels.com/video-files/7095749/7095749-uhd_2732_1440_25fps.mp4"
+                />
               </div>
 
               {/* Decorative blur elements for visual interest */}

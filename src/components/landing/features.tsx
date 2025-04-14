@@ -1,7 +1,6 @@
 "use client";
 
 import { BlurFade } from "@/components/magicui/blur-fade";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -17,7 +16,6 @@ import {
   BookOpen,
   CheckCircle,
 } from "lucide-react";
-import Link from "next/link";
 
 // Define the features to display
 const features = [
@@ -61,10 +59,7 @@ const features = [
 
 export default function Features() {
   return (
-    <section className="py-24 sm:py-32 bg-gradient-to-b from-white to-gray-50 relative">
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_4rem] opacity-70"></div>
-
+    <section className="py-12 sm:py-16 relative">
       <div className="container px-4 sm:px-6 lg:px-8 mx-auto">
         {/* Section heading with animation */}
         <BlurFade
@@ -97,62 +92,35 @@ export default function Features() {
               direction="up"
               inView={true}
             >
-              <Card className="h-full bg-white/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 group">
-                <CardHeader>
-                  <div className="bg-[#800020]/10 rounded-full p-3 w-fit mb-4 group-hover:bg-[#800020]/20 transition-colors duration-300">
+              <Card className="h-full overflow-hidden bg-white border-none shadow-md hover:shadow-xl transition-all duration-300 group relative">
+                {/* Decorative background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#800020]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                {/* Top accent line with animated gradient on hover */}
+                <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#800020]/30 via-[#800020]/50 to-[#800020]/30 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+
+                <CardHeader className="pb-2">
+                  <div className="bg-[#800020]/10 rounded-full p-3 w-fit mb-4 group-hover:bg-[#800020]/20 transition-all duration-300 transform group-hover:-translate-y-1">
                     {feature.icon}
                   </div>
-                  <CardTitle className="text-xl group-hover:text-[#800020] transition-colors duration-300">
+                  <CardTitle className="text-xl group-hover:text-[#800020] transition-colors duration-300 flex items-center gap-2">
                     {feature.title}
+                    <div className="h-px flex-grow bg-gray-200 group-hover:bg-[#800020]/30 transition-colors duration-300 ml-2 hidden sm:block"></div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-base">
+                  <CardDescription className="text-base relative">
                     {feature.description}
+                    <div className="absolute -bottom-4 -right-4 w-16 h-16 rounded-full bg-[#800020]/5 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500"></div>
                   </CardDescription>
                 </CardContent>
+
+                {/* Interactive corner accent */}
+                <div className="absolute bottom-0 right-0 w-8 h-8 bg-[#800020]/0 group-hover:bg-[#800020]/10 transition-colors duration-300 rounded-tl-xl"></div>
               </Card>
             </BlurFade>
           ))}
         </div>
-
-        {/* Call to action section */}
-        <BlurFade
-          delay={0.7}
-          direction="up"
-          inView={true}
-          className="mt-20 text-center"
-        >
-          <div className="bg-white p-10 rounded-2xl shadow-md border border-gray-100 max-w-3xl mx-auto backdrop-blur-sm">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Ready to enhance your ensemble management?
-            </h3>
-            <p className="text-gray-600 mb-8">
-              Join orchestras worldwide who use{" "}
-              <span className="text-[#800020] font-['The_Seasons',serif] font-bold text-lg">
-                Maestro
-              </span>{" "}
-              to streamline their operations.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="bg-[#800020] hover:bg-[#600010] text-white"
-                asChild
-              >
-                <Link href="/signup">Get Started</Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-gray-300 hover:bg-gray-50"
-                asChild
-              >
-                <Link href="/pricing">View Pricing</Link>
-              </Button>
-            </div>
-          </div>
-        </BlurFade>
       </div>
     </section>
   );
