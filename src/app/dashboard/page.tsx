@@ -232,15 +232,7 @@ export default function Dashboard() {
                       </SidebarMenuBadge>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-            
-            <SidebarSeparator className="my-1 bg-gray-100" />
-            
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu>
+
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       onClick={() => setActiveTab("sheet-music")}
