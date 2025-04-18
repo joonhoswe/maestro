@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -34,44 +36,43 @@ import {
   CreditCard,
   LogOut,
 } from "lucide-react";
-import { useState } from "react";
 
 // Menu items.
 const items = [
   {
     title: "Home",
-    url: "#",
+    url: "/dashboard",
     icon: Home,
   },
   {
     title: "Announcments",
-    url: "#",
+    url: "/dashboard/announcements",
     icon: BellIcon,
   },
   {
     title: "Calendar",
-    url: "#",
+    url: "/dashboard/calendar",
     icon: Calendar,
   },
   {
     title: "Rehearsals",
-    url: "#",
+    url: "/dashboard/rehearsals",
     icon: TimerIcon,
   },
   {
     title: "Sheet Music",
-    url: "#",
+    url: "/dashboard/sheet-music",
     icon: MusicIcon,
   },
   {
     title: "People",
-    url: "#",
+    url: "/dashboard/people",
     icon: Users,
   },
 ];
 
 export function AppSidebar() {
-  const [activeItem, setActiveItem] = useState("Home");
+  const pathname = usePathname();
 
   return (
     <Sidebar>
@@ -94,24 +95,23 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     className="hover:bg-[#800020]/5 data-[active=true]:bg-[#800020]/10 data-[active=true]:text-[#800020]"
-                    isActive={activeItem === item.title}
+                    isActive={
+                      item.url === pathname ||
+                      (item.url === "/dashboard" && pathname === "/dashboard")
+                    }
                   >
-                    <a
-                      href={item.url}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setActiveItem(item.title);
-                      }}
-                    >
+                    <Link href={item.url}>
                       <item.icon
                         className={
-                          activeItem === item.title
+                          item.url === pathname ||
+                          (item.url === "/dashboard" &&
+                            pathname === "/dashboard")
                             ? "text-[#800020]"
                             : "text-gray-500"
                         }
                       />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
