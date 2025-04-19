@@ -45,7 +45,7 @@ const items = [
     icon: Home,
   },
   {
-    title: "Announcments",
+    title: "Announcements",
     url: "/dashboard/announcements",
     icon: BellIcon,
   },
