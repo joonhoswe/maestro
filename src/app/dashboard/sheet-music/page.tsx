@@ -1,14 +1,25 @@
-import * as React from "react";
+import { useState, useEffect } from 'react'
+import { supabase } from '@/utils/supabase'
 import { MusicIcon } from "lucide-react";
 
 export default function SheetMusic() {
-  const musicPieces = [
-    "Beethoven Symphony No. 5",
-    "Mozart Symphony No. 40",
-    "Tchaikovsky Symphony No. 6",
-    "Bach Brandenburg Concerto No. 3",
-    "Dvořák Symphony No. 9",
-  ];
+  const [musicPieces, setMusicPieces] = useState<any[]>([])
+
+  useEffect(() => {
+    async function fetchMusicPieces() {
+      const { data, error } = await supabase
+        .from('music_pieces')
+        .select('*')
+
+      if (error) {
+        console.error('Error fetching music pieces:', error)
+      } else {
+        setMusicPieces(data)
+      }
+    }
+
+    fetchMusicPieces()
+  }, [])
 
   return (
     <div className="p-8">
@@ -21,7 +32,7 @@ export default function SheetMusic() {
           >
             <div className="flex items-center gap-3">
               <MusicIcon className="h-5 w-5 text-blue-600" />
-              <span className="text-gray-800 text-lg">{piece}</span>
+              <span className="text-gray-800 text-lg">{piece.title}</span>
             </div>
           </div>
         ))}
