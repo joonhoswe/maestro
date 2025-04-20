@@ -3,15 +3,10 @@ import Link from "next/link";
 import { CalendarDays, Music, MessageSquare, Users } from "lucide-react";
 import { BlurFade } from "@/components/magicui/blur-fade";
 import { Safari } from "../magicui/safari";
-import Meteors from "../magicui/meteors";
-import ShineBorder from "../magicui/shine-border";
 
 export default function Hero() {
   return (
     <section className="relative py-20 sm:py-32 overflow-hidden">
-      {/* Add Meteors effect as a background element */}
-      <Meteors number={15} className="opacity-70" />
-      
       <div className="container px-4 sm:px-6 lg:px-8 mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left column: Text content with staggered animations */}
@@ -52,19 +47,13 @@ export default function Hero() {
             {/* CTA buttons - Fourth element to animate in */}
             <BlurFade delay={0.4} direction="up" inView={true}>
               <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <ShineBorder 
-                  colors={["#800020", "#FF9393", "#800020"]} 
-                  background="#800020"
-                  className="w-full sm:w-auto"
+                <Button
+                  size="lg"
+                  className="bg-[#800020] hover:bg-[#600010] text-white"
+                  asChild
                 >
-                  <Button
-                    size="lg"
-                    className="bg-transparent hover:bg-[#600010] text-white w-full"
-                    asChild
-                  >
-                    <Link href="/signup">Get Started</Link>
-                  </Button>
-                </ShineBorder>
+                  <Link href="/signup">Get Started</Link>
+                </Button>
                 <Button
                   size="lg"
                   variant="outline"
