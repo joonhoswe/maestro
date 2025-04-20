@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   Sidebar,
@@ -75,7 +75,6 @@ const items = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [userData, setUserData] = useState({
     firstName: "",
     lastName: "",
@@ -118,8 +117,11 @@ export function AppSidebar() {
 
   const handleSignOut = async () => {
     try {
+      // First sign out from Supabase
       await supabase.auth.signOut();
-      router.push("/");
+
+      // Then navigate to home page using window.location to ensure a clean redirect
+      window.location.href = "/";
     } catch (error) {
       console.error("Error signing out:", error);
     }
