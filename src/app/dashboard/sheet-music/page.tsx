@@ -395,30 +395,27 @@ export default function SheetMusic() {
       
       if (deleteError) throw deleteError
 
-      // 3. Delete the middle db record
-      const { data: middleDeleteData, error: middleDeleteError } = await supabase
+      // 3. Delete the instrument slot
+      const { data: slotDeleteData, error: slotDeleteError } = await supabase
         .from('piece_instruments')
         .delete()
         .eq('id', pieceInstrumentId)
         .select()
       
-      if (middleDeleteError) throw middleDeleteError
+      if (slotDeleteError) throw slotDeleteError
       
       console.log("Database deletion successful:", deleteData)
+      console.log("Slot deletion successful:", slotDeleteData)
       
-      // 3. Update local state
+      // 4. Update local state - completely remove the slot from UI
       setMusicPieces(prev => 
         prev.map(piece => ({
           ...piece,
-          pieceInstruments: piece.pieceInstruments.map((pi: any) => 
-            pi.id === pieceInstrumentId 
-              ? { ...pi, part: null } 
-              : pi
-          )
+          pieceInstruments: piece.pieceInstruments.filter((pi: any) => pi.id !== pieceInstrumentId)
         }))
       )
       
-      setMessage({ text: 'Instrument part deleted successfully from database and storage', type: 'success' })
+      setMessage({ text: 'Instrument part deleted successfully', type: 'success' })
     } catch (error) {
       console.error('Error deleting instrument part:', error)
       setMessage({ text: 'Error deleting instrument part. See console for details.', type: 'error' })
