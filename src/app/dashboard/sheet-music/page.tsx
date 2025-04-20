@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/utils/supabase'
-import { MusicIcon, Upload, File, ExternalLink, ChevronDown, ChevronUp, X, Plus } from "lucide-react";
+import { MusicIcon, Upload, File, ExternalLink, ChevronDown, ChevronUp, X, Plus, Trash2 } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,12 @@ export default function SheetMusic() {
   const [addingSlotToPiece, setAddingSlotToPiece] = useState<string | null>(null)
   const [newSlotInstrumentId, setNewSlotInstrumentId] = useState<string>('')
   const [newSlotLabel, setNewSlotLabel] = useState<string>('')
+  
+  // For deletion
+  const [deletingPiece, setDeletingPiece] = useState<{id: string, title: string} | null>(null)
+  const [deletingPart, setDeletingPart] = useState<{id: string, pieceInstrumentId: string, slotLabel: string} | null>(null)
+  const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -313,6 +319,116 @@ export default function SheetMusic() {
     setShowUploadForm(true)
   }
 
+  // Function to delete a music piece
+  const deleteMusicPiece = async (pieceId: string, filePath: string) => {
+    try {
+      setIsDeleting(true)
+      console.log(`Starting deletion of music piece: ${pieceId}, file: ${filePath}`)
+      
+      // 1. Delete the file from storage
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('sheet-music')
+        .remove([filePath])
+      
+      if (storageError) {
+        console.error("Error deleting file from storage:", storageError)
+        // Continue with database deletion even if storage deletion fails
+        // The file might not exist or have a different path
+      } else {
+        console.log("Storage deletion result:", storageData)
+      }
+      
+      // 2. Delete the piece record (will cascade delete piece_instruments and instrument_parts)
+      const { data: deleteData, error: deleteError } = await supabase
+        .from('music_pieces')
+        .delete()
+        .eq('id', pieceId)
+        .select()
+      
+      if (deleteError) throw deleteError
+      
+      console.log("Database deletion successful:", deleteData)
+      
+      // 3. Update local state
+      setMusicPieces(prev => prev.filter(piece => piece.id !== pieceId))
+      setExpandedPieces(prev => {
+        const updated = { ...prev }
+        delete updated[pieceId]
+        return updated
+      })
+      
+      setMessage({ text: 'Music piece deleted successfully from database and storage', type: 'success' })
+    } catch (error) {
+      console.error('Error deleting music piece:', error)
+      setMessage({ text: 'Error deleting music piece. See console for details.', type: 'error' })
+    } finally {
+      setIsDeleting(false)
+      setDeletingPiece(null)
+      setDeleteConfirmationId(null)
+    }
+  }
+  
+  // Function to delete an instrument part
+  const deleteInstrumentPart = async (partId: string, pieceInstrumentId: string, filePath: string) => {
+    try {
+      setIsDeleting(true)
+      console.log(`Starting deletion of instrument part: ${partId}, file: ${filePath}`)
+      
+      // 1. Delete the file from storage
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('sheet-music')
+        .remove([filePath])
+      
+      if (storageError) {
+        console.error("Error deleting file from storage:", storageError)
+        // Continue with database deletion even if storage deletion fails
+      } else {
+        console.log("Storage deletion result:", storageData)
+      }
+      
+      // 2. Delete the part record
+      const { data: deleteData, error: deleteError } = await supabase
+        .from('instrument_parts')
+        .delete()
+        .eq('id', partId)
+        .select()
+      
+      if (deleteError) throw deleteError
+
+      // 3. Delete the middle db record
+      const { data: middleDeleteData, error: middleDeleteError } = await supabase
+        .from('piece_instruments')
+        .delete()
+        .eq('id', pieceInstrumentId)
+        .select()
+      
+      if (middleDeleteError) throw middleDeleteError
+      
+      console.log("Database deletion successful:", deleteData)
+      
+      // 3. Update local state
+      setMusicPieces(prev => 
+        prev.map(piece => ({
+          ...piece,
+          pieceInstruments: piece.pieceInstruments.map((pi: any) => 
+            pi.id === pieceInstrumentId 
+              ? { ...pi, part: null } 
+              : pi
+          )
+        }))
+      )
+      
+      setMessage({ text: 'Instrument part deleted successfully from database and storage', type: 'success' })
+    } catch (error) {
+      console.error('Error deleting instrument part:', error)
+      setMessage({ text: 'Error deleting instrument part. See console for details.', type: 'error' })
+    } finally {
+      setIsDeleting(false)
+      setDeletingPart(null)
+      setDeleteConfirmationId(null)
+    }
+  }
+
   return (
     <div className="p-8 relative w-full">
       <div className="flex justify-between items-center mb-6">
@@ -571,16 +687,44 @@ export default function SheetMusic() {
                     </div>
                   </div>
                   
-                  <button 
-                    onClick={() => togglePieceExpansion(piece.id)} 
-                    className="p-1.5 rounded-full text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                  >
-                    {expandedPieces[piece.id] ? 
-                      <ChevronUp className="h-5 w-5" /> : 
-                      <ChevronDown className="h-5 w-5" />
-                    }
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => {
+                        setDeletingPiece({ id: piece.id, title: piece.title });
+                        setDeleteConfirmationId(piece.id);
+                      }}
+                      className="p-1.5 rounded-full text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                      aria-label="Delete piece"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
+                
+                {/* Delete confirmation */}
+                {deleteConfirmationId === piece.id && (
+                  <div className="mb-3 p-2 bg-red-50 dark:bg-red-900/20 rounded-md">
+                    <p className="text-sm text-red-700 dark:text-red-300 mb-2">
+                      Are you sure you want to delete "{piece.title}"? This cannot be undone.
+                    </p>
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => setDeleteConfirmationId(null)}
+                        className="px-2 py-1 text-xs rounded-md text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+                        disabled={isDeleting}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => deleteMusicPiece(piece.id, piece.file_path)}
+                        className="px-2 py-1 text-xs rounded-md text-white bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                      </button>
+                    </div>
+                  </div>
+                )}
                 
                 {/* Main score link */}
                 <div className="flex items-center gap-2 mt-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 p-2 rounded-md transition-colors">
@@ -638,55 +782,105 @@ export default function SheetMusic() {
                           const partUrl = pieceInstrument.part?.file_url || null;
                           
                           return (
-                            <div key={pieceInstrument.id} className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 p-2 rounded-md transition-colors">
-                              <File className="h-4 w-4 text-[#800020] dark:text-[#ff9393]" />
-                              
-                              {pieceInstrument.part ? (
-                                <a 
-                                  href={partUrl} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="flex-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm cursor-pointer"
-                                  onClick={(e) => {
-                                    // Debug logging
-                                    console.log("Opening part with URL:", partUrl);
-                                    if (!partUrl) {
-                                      e.preventDefault();
-                                      console.error("No file URL available for:", pieceInstrument.part);
-                                    }
-                                  }}
-                                >
-                                  <span>{pieceInstrument.slot_label} ({pieceInstrument.instruments.name})</span>
-                                </a>
-                              ) : (
-                                <span className="flex-1 text-gray-500 dark:text-gray-400 text-sm">
-                                  {pieceInstrument.slot_label} ({pieceInstrument.instruments.name}) - Not uploaded
-                                </span>
+                            <div key={pieceInstrument.id} className="relative">
+                              {/* Delete confirmation for this part */}
+                              {deleteConfirmationId === pieceInstrument.part?.id && (
+                                <div className="mb-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-md">
+                                  <p className="text-sm text-red-700 dark:text-red-300 mb-2">
+                                    Delete {pieceInstrument.slot_label} part?
+                                  </p>
+                                  <div className="flex justify-end gap-2">
+                                    <button
+                                      onClick={() => setDeleteConfirmationId(null)}
+                                      className="px-2 py-1 text-xs rounded-md text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+                                      disabled={isDeleting}
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      onClick={() => deleteInstrumentPart(
+                                        pieceInstrument.part.id, 
+                                        pieceInstrument.id, 
+                                        pieceInstrument.part.file_path
+                                      )}
+                                      className="px-2 py-1 text-xs rounded-md text-white bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
+                                      disabled={isDeleting}
+                                    >
+                                      {isDeleting ? "Deleting..." : "Delete"}
+                                    </button>
+                                  </div>
+                                </div>
                               )}
                               
-                              {pieceInstrument.part ? (
-                                <a
-                                  href={partUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                                  onClick={(e) => {
-                                    if (!partUrl) {
-                                      e.preventDefault();
-                                      console.error("No file URL available");
-                                    }
-                                  }}
-                                >
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                </a>
-                              ) : (
-                                <button
-                                  onClick={() => openUploadForPart(piece.id, pieceInstrument.id, pieceInstrument.slot_label)}
-                                  className="text-[#800020] dark:text-[#ff9393] hover:text-[#600010]"
-                                >
-                                  <Upload className="h-3.5 w-3.5" />
-                                </button>
-                              )}
+                              <div className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 p-2 rounded-md transition-colors">
+                                <File className="h-4 w-4 text-[#800020] dark:text-[#ff9393]" />
+                                
+                                {pieceInstrument.part ? (
+                                  <>
+                                    <a 
+                                      href={partUrl} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="flex-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm cursor-pointer"
+                                      onClick={(e) => {
+                                        // Debug logging
+                                        console.log("Opening part with URL:", partUrl);
+                                        if (!partUrl) {
+                                          e.preventDefault();
+                                          console.error("No file URL available for:", pieceInstrument.part);
+                                        }
+                                      }}
+                                    >
+                                      <span>{pieceInstrument.slot_label} ({pieceInstrument.instruments.name})</span>
+                                    </a>
+                                    
+                                    <div className="flex items-center gap-1">
+                                      <a
+                                        href={partUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                        onClick={(e) => {
+                                          if (!partUrl) {
+                                            e.preventDefault();
+                                            console.error("No file URL available");
+                                          }
+                                        }}
+                                      >
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                      </a>
+                                      
+                                      <button
+                                        onClick={() => {
+                                          setDeletingPart({
+                                            id: pieceInstrument.part.id,
+                                            pieceInstrumentId: pieceInstrument.id,
+                                            slotLabel: pieceInstrument.slot_label
+                                          });
+                                          setDeleteConfirmationId(pieceInstrument.part.id);
+                                        }}
+                                        className="text-red-500 hover:text-red-700 p-1"
+                                        aria-label={`Delete ${pieceInstrument.slot_label} part`}
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="flex-1 text-gray-500 dark:text-gray-400 text-sm">
+                                      {pieceInstrument.slot_label} ({pieceInstrument.instruments.name}) - Not uploaded
+                                    </span>
+                                    
+                                    <button
+                                      onClick={() => openUploadForPart(piece.id, pieceInstrument.id, pieceInstrument.slot_label)}
+                                      className="text-[#800020] dark:text-[#ff9393] hover:text-[#600010]"
+                                    >
+                                      <Upload className="h-3.5 w-3.5" />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           );
                         })}
