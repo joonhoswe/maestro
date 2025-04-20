@@ -5,7 +5,6 @@ import { supabase } from '@/utils/supabase'
 import { MusicIcon, Upload, File, ExternalLink, ChevronDown, ChevronUp, X } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
 import { motion, AnimatePresence } from "motion/react";
-import { MagicCard } from '@/components/magicui/magic-card';
 import { Button } from "@/components/ui/button";
 
 export default function SheetMusic() {
@@ -172,7 +171,7 @@ export default function SheetMusic() {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Sheet Music</h1>
         <Button 
           onClick={() => setShowUploadForm(true)}
-          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white"
+          className="flex items-center gap-2 bg-[#800020] hover:bg-[#600010] text-white"
         >
           <Upload className="w-4 h-4" />
           <span>Upload Music</span>
@@ -289,7 +288,7 @@ export default function SheetMusic() {
                   <Button
                     type="submit"
                     disabled={uploading}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    className="w-full bg-[#800020] hover:bg-[#600010] text-white"
                   >
                     {uploading ? 'Uploading...' : expandedPiece ? 'Add Instrument Part' : 'Upload Music'}
                   </Button>
@@ -304,16 +303,12 @@ export default function SheetMusic() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {musicPieces.map((piece) => (
           <div key={piece.id} className="mb-6">
-            <MagicCard 
-              className="h-full" 
-              gradientFrom="#9E7AFF"
-              gradientTo="#FE8BBB"
-            >
+            <div className="h-full border border-[#800020]/30 dark:border-[#800020]/20 rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
               <div className="p-5 h-full flex flex-col">
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-full">
-                      <MusicIcon className="h-5 w-5 text-primary" />
+                    <div className="p-2 bg-[#800020]/10 dark:bg-[#800020]/20 rounded-full">
+                      <MusicIcon className="h-5 w-5 text-[#800020] dark:text-[#ff9393]" />
                     </div>
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{piece.title}</h3>
@@ -324,21 +319,12 @@ export default function SheetMusic() {
                       )}
                     </div>
                   </div>
-                  
-                  <button 
-                    onClick={() => togglePieceExpansion(piece.id)} 
-                    className="p-1.5 rounded-full text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                  >
-                    {expandedPiece === piece.id ? 
-                      <ChevronUp className="h-5 w-5" /> : 
-                      <ChevronDown className="h-5 w-5" />
-                    }
-                  </button>
+                
                 </div>
                 
                 {/* Main score link */}
                 <div className="flex items-center gap-2 mt-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 p-2 rounded-md transition-colors">
-                  <File className="h-4 w-4 text-primary" />
+                  <File className="h-4 w-4 text-[#800020] dark:text-[#ff9393]" />
                   <a 
                     href={piece.file_url} 
                     target="_blank" 
@@ -351,59 +337,50 @@ export default function SheetMusic() {
                 </div>
                 
                 {/* Instrument parts */}
-                <AnimatePresence>
-                  {expandedPiece === piece.id && (
-                    <motion.div 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <div className="mt-4 border-t border-gray-200 dark:border-gray-800 pt-4">
-                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex justify-between items-center">
-                          <span>Instrument Parts</span>
-                          <button 
-                            onClick={() => {
-                              setExpandedPiece(piece.id)
-                              setShowUploadForm(true)
-                            }}
-                            className="text-xs text-primary hover:text-primary/80 flex items-center"
-                          >
-                            <Upload className="h-3 w-3 mr-1" /> Add Part
-                          </button>
-                        </div>
-                        
-                        {piece.instrumentParts && piece.instrumentParts.length > 0 ? (
-                          <div className="space-y-2">
-                            {piece.instrumentParts.map((part: any) => (
-                              <div key={part.id} className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 p-2 rounded-md transition-colors">
-                                <File className="h-4 w-4 text-primary/80" />
-                                <a 
-                                  href={part.file_url} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="flex-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
-                                >
-                                  <span>{part.instrument_name}</span>
-                                </a>
-                                <ExternalLink className="h-3.5 w-3.5 text-gray-400" />
-                              </div>
-                            ))}
+                {expandedPiece === piece.id && (
+                  <div className="mt-4 border-t border-gray-200 dark:border-gray-800 pt-4">
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex justify-between items-center">
+                      <span>Instrument Parts</span>
+                      <button 
+                        onClick={() => {
+                          setExpandedPiece(piece.id)
+                          setShowUploadForm(true)
+                        }}
+                        className="text-xs text-[#800020] dark:text-[#ff9393] hover:text-[#600010] dark:hover:text-[#ffbaba] flex items-center"
+                      >
+                        <Upload className="h-3 w-3 mr-1" /> Add Part
+                      </button>
+                    </div>
+                    
+                    {piece.instrumentParts && piece.instrumentParts.length > 0 ? (
+                      <div className="space-y-2">
+                        {piece.instrumentParts.map((part: any) => (
+                          <div key={part.id} className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 p-2 rounded-md transition-colors">
+                            <File className="h-4 w-4 text-[#800020] dark:text-[#ff9393]" />
+                            <a 
+                              href={part.file_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
+                            >
+                              <span>{part.instrument_name}</span>
+                            </a>
+                            <ExternalLink className="h-3.5 w-3.5 text-gray-400" />
                           </div>
-                        ) : (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                            No instrument parts available
-                          </p>
-                        )}
+                        ))}
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                        No instrument parts available
+                      </p>
+                    )}
+                  </div>
+                )}
                 
                 <div className="mt-auto pt-4">
                   <button 
                     onClick={() => togglePieceExpansion(piece.id)}
-                    className="w-full p-2 text-sm flex items-center justify-center gap-2 text-primary hover:bg-primary/5 rounded-md transition-colors" 
+                    className="w-full p-2 text-sm flex items-center justify-center gap-2 text-[#800020] dark:text-[#ff9393] hover:bg-[#800020]/5 dark:hover:bg-[#800020]/10 rounded-md transition-colors" 
                   >
                     {expandedPiece === piece.id ? (
                       <>Hide details <ChevronUp className="h-4 w-4" /></>
@@ -413,7 +390,7 @@ export default function SheetMusic() {
                   </button>
                 </div>
               </div>
-            </MagicCard>
+            </div>
           </div>
         ))}
       </div>
