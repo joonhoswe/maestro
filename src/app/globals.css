@@ -130,3 +130,24 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Meteor animation */
+@keyframes meteor {
+  0% {
+    transform: translateY(0) translateX(0) rotate(215deg);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(1000px) translateX(-1000px) rotate(215deg);
+    opacity: 0;
+  }
+}
+
+/* Apply the meteor animation to the meteor element */
+[class^="meteor"] > div {
+  animation-name: meteor;
+  animation-iteration-count: infinite;
+}
