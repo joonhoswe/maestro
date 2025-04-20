@@ -16,7 +16,8 @@ export default function SheetMusic() {
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState({ text: '', type: '' })
   const [showUploadForm, setShowUploadForm] = useState(false)
-  const [expandedPiece, setExpandedPiece] = useState<string | null>(null)
+  const [expandedPieces, setExpandedPieces] = useState<{[key: string]: boolean}>({})
+  const [activePieceForUpload, setActivePieceForUpload] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -110,7 +111,7 @@ export default function SheetMusic() {
           .from('instrument_parts')
           .insert([
             {
-              piece_id: expandedPiece,
+              piece_id: activePieceForUpload,
               instrument_name: instrumentName,
               file_path: filePath,
               file_url: urlData.publicUrl
@@ -141,6 +142,7 @@ export default function SheetMusic() {
       setInstrumentName('')
       setFile(null)
       setShowUploadForm(false)
+      setActivePieceForUpload(null)
       
       // Reset file input
       if (fileInputRef.current) {
@@ -158,11 +160,10 @@ export default function SheetMusic() {
   }
 
   const togglePieceExpansion = (pieceId: string) => {
-    if (expandedPiece === pieceId) {
-      setExpandedPiece(null)
-    } else {
-      setExpandedPiece(pieceId)
-    }
+    setExpandedPieces(prev => ({
+      ...prev,
+      [pieceId]: !prev[pieceId]
+    }));
   }
 
   return (
@@ -214,10 +215,13 @@ export default function SheetMusic() {
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-semibold flex items-center">
                     <Upload className="mr-2 h-5 w-5" /> 
-                    {expandedPiece ? "Add Instrument Part" : "Upload Sheet Music"}
+                    {activePieceForUpload ? "Add Instrument Part" : "Upload Sheet Music"}
                   </h2>
                   <button 
-                    onClick={() => setShowUploadForm(false)}
+                    onClick={() => {
+                      setShowUploadForm(false);
+                      setActivePieceForUpload(null);
+                    }}
                     className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                   >
                     <X className="h-5 w-5" />
@@ -225,7 +229,7 @@ export default function SheetMusic() {
                 </div>
                 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {!expandedPiece ? (
+                  {!activePieceForUpload ? (
                     <>
                       <div>
                         <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -290,7 +294,7 @@ export default function SheetMusic() {
                     disabled={uploading}
                     className="w-full bg-[#800020] hover:bg-[#600010] text-white"
                   >
-                    {uploading ? 'Uploading...' : expandedPiece ? 'Add Instrument Part' : 'Upload Music'}
+                    {uploading ? 'Uploading...' : activePieceForUpload ? 'Add Instrument Part' : 'Upload Music'}
                   </Button>
                 </form>
               </div>
@@ -303,8 +307,8 @@ export default function SheetMusic() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {musicPieces.map((piece) => (
           <div key={piece.id} className="mb-6">
-            <div className="h-full border border-[#800020]/30 dark:border-[#800020]/20 rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
-              <div className="p-5 h-full flex flex-col">
+            <div className="border border-[#800020]/30 dark:border-[#800020]/20 rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
+              <div className="p-5 flex flex-col">
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-[#800020]/10 dark:bg-[#800020]/20 rounded-full">
@@ -319,7 +323,16 @@ export default function SheetMusic() {
                       )}
                     </div>
                   </div>
-                
+                  
+                  <button 
+                    onClick={() => togglePieceExpansion(piece.id)} 
+                    className="p-1.5 rounded-full text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                  >
+                    {expandedPieces[piece.id] ? 
+                      <ChevronUp className="h-5 w-5" /> : 
+                      <ChevronDown className="h-5 w-5" />
+                    }
+                  </button>
                 </div>
                 
                 {/* Main score link */}
@@ -336,15 +349,29 @@ export default function SheetMusic() {
                   <ExternalLink className="h-3.5 w-3.5 text-gray-400" />
                 </div>
                 
-                {/* Instrument parts */}
-                {expandedPiece === piece.id && (
-                  <div className="mt-4 border-t border-gray-200 dark:border-gray-800 pt-4">
+                {/* Button at the bottom remains fixed position */}
+                <div className="mt-4">
+                  <button 
+                    onClick={() => togglePieceExpansion(piece.id)}
+                    className="w-full p-2 text-sm flex items-center justify-center gap-2 text-[#800020] dark:text-[#ff9393] hover:bg-[#800020]/5 dark:hover:bg-[#800020]/10 rounded-md transition-colors" 
+                  >
+                    {expandedPieces[piece.id] ? (
+                      <>Hide parts <ChevronUp className="h-4 w-4" /></>
+                    ) : (
+                      <>Show parts <ChevronDown className="h-4 w-4" /></>
+                    )}
+                  </button>
+                </div>
+                
+                {/* Expanded content in separate section that doesn't affect card height */}
+                <div className={`overflow-hidden transition-all duration-300 ${expandedPieces[piece.id] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-800 mt-4">
                     <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex justify-between items-center">
                       <span>Instrument Parts</span>
                       <button 
                         onClick={() => {
-                          setExpandedPiece(piece.id)
-                          setShowUploadForm(true)
+                          setActivePieceForUpload(piece.id);
+                          setShowUploadForm(true);
                         }}
                         className="text-xs text-[#800020] dark:text-[#ff9393] hover:text-[#600010] dark:hover:text-[#ffbaba] flex items-center"
                       >
@@ -375,19 +402,6 @@ export default function SheetMusic() {
                       </p>
                     )}
                   </div>
-                )}
-                
-                <div className="mt-auto pt-4">
-                  <button 
-                    onClick={() => togglePieceExpansion(piece.id)}
-                    className="w-full p-2 text-sm flex items-center justify-center gap-2 text-[#800020] dark:text-[#ff9393] hover:bg-[#800020]/5 dark:hover:bg-[#800020]/10 rounded-md transition-colors" 
-                  >
-                    {expandedPiece === piece.id ? (
-                      <>Hide details <ChevronUp className="h-4 w-4" /></>
-                    ) : (
-                      <>Show details <ChevronDown className="h-4 w-4" /></>
-                    )}
-                  </button>
                 </div>
               </div>
             </div>
