@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { MagicCard } from "@/components/magicui/magic-card";
 import {
   Card,
@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/utils/supabase";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
@@ -22,6 +23,16 @@ export default function SignInForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get("returnUrl") || "/dashboard";
+  const { user, refreshSession } = useAuth();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    if (user) {
+      router.push(decodeURIComponent(returnUrl));
+    }
+  }, [user, returnUrl, router]);
 
   const handleSignIn = async (event: FormEvent) => {
     event.preventDefault();
@@ -39,8 +50,10 @@ export default function SignInForm() {
       setError(signInError.message);
       setLoading(false);
     } else if (data.user) {
-      // Redirect to dashboard upon successful login
-      router.push("/dashboard");
+      // Refresh auth context
+      await refreshSession();
+      // Redirect to the return URL or dashboard upon successful login
+      router.push(decodeURIComponent(returnUrl));
     } else {
       setError("An unexpected issue occurred during sign in.");
       setLoading(false);
