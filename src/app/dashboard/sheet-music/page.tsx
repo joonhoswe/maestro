@@ -47,25 +47,25 @@ export default function SheetMusic() {
 
       if (piecesError) throw piecesError
 
-      // For each piece, fetch its instrument parts
-      const enhancedPieces = await Promise.all(
-        (piecesData || []).map(async (piece) => {
-          const { data: partsData, error: partsError } = await supabase
-            .from('instrument_parts')
-            .select('*')
-            .eq('piece_id', piece.id)
-            .order('created_at', { ascending: true })
+      // // For each piece, fetch its instrument parts
+      // const enhancedPieces = await Promise.all(
+      //   (piecesData || []).map(async (piece) => {
+      //     const { data: partsData, error: partsError } = await supabase
+      //       .from('instrument_parts')
+      //       .select('*')
+      //       .eq('piece_id', piece.id)
+      //       .order('created_at', { ascending: true })
 
-          if (partsError) throw partsError
+      //     if (partsError) throw partsError
 
-          return {
-            ...piece,
-            instrumentParts: partsData || []
-          }
-        })
-      )
+      //     return {
+      //       ...piece,
+      //       instrumentParts: partsData || []
+      //     }
+      //   })
+      // )
 
-      setMusicPieces(enhancedPieces)
+      setMusicPieces(piecesData || [])
     } catch (error) {
       console.error('Error fetching music pieces:', error)
     }
