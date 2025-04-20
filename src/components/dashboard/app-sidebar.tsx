@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { supabase } from "@/utils/supabase";
 
 import {
   Home,
@@ -73,15 +75,71 @@ const items = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [userData, setUserData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    initials: "",
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function getUserData() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          // Get user metadata for first_name and last_name
+          const firstName = user.user_metadata?.first_name || "";
+          const lastName = user.user_metadata?.last_name || "";
+
+          // Create initials from first and last name
+          const initials = (firstName?.[0] || "") + (lastName?.[0] || "");
+
+          setUserData({
+            firstName,
+            lastName,
+            email: user.email || "",
+            initials: initials.toUpperCase(),
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    getUserData();
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      router.push("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  const fullName =
+    userData.firstName && userData.lastName
+      ? `${userData.firstName} ${userData.lastName}`
+      : userData.email.split("@")[0] || "User";
 
   return (
     <Sidebar>
       {/* Main Content */}
       <SidebarContent>
         <div className="pl-4 pt-4">
-          <span className="text-3xl font-bold text-[#800020] font-['The_Seasons',serif]">
-            Maestro
-          </span>
+          <Link href="/">
+            <span className="text-3xl font-bold text-[#800020] font-['The_Seasons',serif]">
+              Maestro
+            </span>
+          </Link>
         </div>
 
         <SidebarGroup>
@@ -133,10 +191,10 @@ export function AppSidebar() {
                       alt="User"
                     />
                     <AvatarFallback className="bg-[#800020]/5 text-[#800020]">
-                      JD
+                      {userData.initials || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <span>John Doe</span>
+                  <span>{!loading ? fullName : "Loading..."}</span>
                   <ChevronUp className="ml-auto text-gray-400" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -148,13 +206,13 @@ export function AppSidebar() {
                       alt="User"
                     />
                     <AvatarFallback className="bg-[#800020]/5 text-[#800020]">
-                      JD
+                      {userData.initials || "U"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
-                    <span className="font-medium">John Doe</span>
+                    <span className="font-medium">{fullName}</span>
                     <span className="text-xs text-gray-500">
-                      john.doe@example.com
+                      {userData.email || "No email available"}
                     </span>
                   </div>
                 </div>
@@ -167,7 +225,10 @@ export function AppSidebar() {
                   <CreditCard className="mr-2 h-4 w-4 text-[#800020]" />
                   <span>Billing</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer hover:bg-[#800020]/5 hover:text-[#800020]">
+                <DropdownMenuItem
+                  className="cursor-pointer hover:bg-[#800020]/5 hover:text-[#800020]"
+                  onClick={handleSignOut}
+                >
                   <LogOut className="mr-2 h-4 w-4 text-[#800020]" />
                   <span>Sign out</span>
                 </DropdownMenuItem>

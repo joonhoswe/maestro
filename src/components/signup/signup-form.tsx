@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/utils/supabase";
+import Link from "next/link";
 
 export default function SignUpForm() {
   const [firstName, setFirstName] = useState("");
@@ -140,6 +141,12 @@ export default function SignUpForm() {
             <Button type="submit" className="w-full mt-4" disabled={loading}>
               {loading ? "Signing Up..." : "Sign Up"}
             </Button>
+            <div className="text-sm text-center mt-4">
+              Already have an account?{" "}
+              <Link href="/signin" className="text-[#800020] hover:underline">
+                Sign in
+              </Link>
+            </div>
           </form>
         </CardContent>
       </MagicCard>
