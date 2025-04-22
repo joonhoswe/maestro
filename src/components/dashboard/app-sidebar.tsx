@@ -71,6 +71,11 @@ const items = [
     url: "/dashboard/people",
     icon: Users,
   },
+  {
+    title: "Seating Chart",
+    url: "/dashboard/seating-chart",
+    icon: Users,
+  },
 ];
 
 export function AppSidebar() {
