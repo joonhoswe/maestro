@@ -117,15 +117,7 @@ export default function Dashboard() {
       background: (
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/10 to-background/10 p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-white p-2 rounded-md shadow-sm">
-                <MusicIcon className="h-5 w-5 text-indigo-600" />
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-indigo-900">Music Library</h3>
-                <p className="text-xs text-gray-600">Access all your orchestra's sheet music</p>
-              </div>
-            </div>
+            
           </div>
         </div>
       ),
